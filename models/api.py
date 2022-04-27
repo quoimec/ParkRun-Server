@@ -14,7 +14,10 @@ class Response:
     def error(cls, error: str, exception: Exception) -> Tuple:
 
         return (
-            json.dumps(data, cls=JSONEncoder), 
+            json.dumps({
+                "error": error,
+                "exception": str(exception)
+            }, cls=JSONEncoder), 
             400, 
             {"Content-Type": "application/json"}
         )
