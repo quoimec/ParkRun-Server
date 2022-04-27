@@ -1,6 +1,8 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import flask
+
 from models.api import Response
 from models.runner import Runner
 
