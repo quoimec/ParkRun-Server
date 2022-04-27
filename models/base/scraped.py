@@ -29,8 +29,9 @@ class Scraped():
     @classmethod
     def soup(cls, url: str) -> BeautifulSoup:
     
-        text = cls.http_get(url=url).content
+        return BeautifulSoup(cls.http_get(url=url).content, features="html.parser")
 
-        print(text)
+    @classmethod
+    def soup_remote(cls, content: str) -> BeautifulSoup:
 
-        return BeautifulSoup(text, features="html.parser")
+        return BeautifulSoup(content, features="html.parser")

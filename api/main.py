@@ -17,3 +17,15 @@ def get_runner(request: flask.Request):
 
     else:
         return Response.ok(data=runner)
+
+
+def get_runner_remote(request: flask.Request):
+    
+    try:
+        runner = Runner.remote_scrape(content=request.json["content"])
+
+    except Exception as e:
+        return Response.error(error="An error occured", exception=e)
+
+    else:
+        return Response.ok(data=runner)

@@ -29,6 +29,18 @@ class Runner(Scraped):
             runs=Runner.extract_runs(soup=soup),
             fastest=Runner.extract_fastest(soup=soup)
         )
+
+    @classmethod
+    def remote_scrape(cls, content: str) -> "Runner":
+        
+        soup = cls.soup_remote(content=content)
+        
+        return Runner(
+            number=number,
+            name=Runner.extract_name(soup=soup),
+            runs=Runner.extract_runs(soup=soup),
+            fastest=Runner.extract_fastest(soup=soup)
+        )
         
     @staticmethod
     def extract_name(soup: BeautifulSoup) -> str:
