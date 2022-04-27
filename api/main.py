@@ -10,8 +10,7 @@ from models.runner import Runner
 def get_runner(request: flask.Request):
     
     try:
-        data = request.get_json()
-        runner = Runner.scrape(number=data["number"])
+        runner = Runner.scrape(number=request.json["number"])
 
     except Exception as e:
         return Response.error(error="An error occured", exception=e)
