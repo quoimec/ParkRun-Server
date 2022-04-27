@@ -41,7 +41,10 @@ jobs:
             uses: google-github-actions/deploy-cloud-functions@v0
             with: 
                 name: ${{ matrix.function }}
-                runtime: python3.7
+                runtime: python37
+                memory_mb: 256MB
+                region: australia-southeast1
+                project_id: park-run
 
 
     # - uses: 
