@@ -25,7 +25,7 @@ class Master(Scraped, Stored):
     def directory() -> str: return ""
 
     @classmethod
-    def base(cls) -> Generator[Dict[str, any]]:
+    def base(cls) -> Generator[Dict[str, any], None, None]:
 
         data = cls.http_get(url="https://images.parkrun.com/events.json").json()
 

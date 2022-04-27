@@ -3,8 +3,9 @@
 
 import re
 
-from dataclasses import dataclass
 from typing import Dict
+from bs4 import BeautifulSoup
+from dataclasses import dataclass
 
 from .base import Scraped
 
