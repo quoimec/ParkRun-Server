@@ -1,0 +1,63 @@
+name: GCloud Function Release
+
+on:
+    push:
+        branches: [develop]
+
+jobs:
+
+    release:
+
+        name: Release [${{ matrix.function }}]
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: true
+            matrix:
+                include:
+                  - function: get_runner
+
+    # permissions:
+    #   contents: 'read'
+    #   id-token: 'write'
+
+        steps:
+
+          - id: checkout
+            name: Checkout
+            uses: actions/checkout@v3
+
+          - id: unpack
+            name: Unpack
+            run: mv api/* .
+
+          - id: auth
+            name: GCloud Auth
+            uses: google-github-actions/auth@v0
+            with:
+                credentials_json: '${{ secrets.GCLOUD_MASTER_SA_KEY }}'
+
+          - id: deploy
+            name: Deploy [${{ matrix.function }}]
+            uses: google-github-actions/deploy-cloud-functions@v0
+            with: 
+                name: ${{ matrix.function }}
+                runtime: python3.7
+
+
+    # - uses: 
+
+    # - id: auth
+    #   uses: google-github-actions/auth@v0
+    #   with:
+    #     workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+    #     service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+
+    # - id: 'deploy'
+    #   uses: ''
+    #   with:
+    #     name: 'my-function'
+    #     runtime: 'nodejs16'
+
+    # # Example of using the output
+    # - id: 'test'
+    #   run: 'curl "${{ steps.deploy.outputs.url }}"'

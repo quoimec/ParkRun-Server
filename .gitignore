@@ -1,0 +1,6 @@
+*.pyc
+*.ipynb_checkpoints
+*.DS_Store
+*__pycache__
+
+gcloud_master_sa_key.json
