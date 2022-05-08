@@ -31,7 +31,7 @@ class Runner(Scraped):
         )
 
     @classmethod
-    def remote_scrape(cls, content: str) -> "Runner":
+    def remote_scrape(cls, number: str, content: str) -> "Runner":
         
         soup = cls.soup_remote(content=content)
         

@@ -44,7 +44,7 @@ class Stored():
         storage.delete(file=file, directory=directory)
 
     @abc.abstractmethod
-    def refresh(cls, storage: Storage, *args, **kwargs) -> "Stored":  raise NotImplementedError
+    def refresh(self, storage: Storage, *args, **kwargs) -> "Stored":  raise NotImplementedError
     
     def write(self, storage: Storage, uuid: str):
 

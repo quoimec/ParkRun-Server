@@ -8,11 +8,12 @@ from models.runner import Runner
 
 
 def get_runner(request: flask.Request):
-    
+
     try:
         runner = Runner.scrape(number=request.json["number"])
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=W0703
+        print(e)
         return Response.error(error="An error occured", exception=e)
 
     else:
@@ -20,11 +21,12 @@ def get_runner(request: flask.Request):
 
 
 def get_runner_remote(request: flask.Request):
-    
-    try:
-        runner = Runner.remote_scrape(content=request.json["content"])
 
-    except Exception as e:
+    try:
+        runner = Runner.remote_scrape(number=request.json["number"], content=request.json["content"])
+
+    except Exception as e:  # pylint: disable=W0703
+        print(e)
         return Response.error(error="An error occured", exception=e)
 
     else:

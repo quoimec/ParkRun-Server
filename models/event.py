@@ -3,14 +3,12 @@
 
 import re
 import os
-import json
-import time
 
-from bs4 import BeautifulSoup
-from typing import List, Dict, Tuple
+from typing import Dict
 from dataclasses import dataclass
 from uuid import uuid5, NAMESPACE_URL as uuid_namespace
 
+from bs4 import BeautifulSoup
 from utils.storage import Storage
 
 from .base import Scraped, Stored
@@ -41,8 +39,7 @@ class Event(Scraped, Stored):
     def refresh(cls, storage: Storage, event: Dict[str, any], refresh_map: bool = False) -> "Event":
         
         country = Event.extract_country(event=event)
-        uuid = Event.extract_uuid(event=event, country=country)
-        url = Event.extract_url(event=event)
+        uuid = Event.extract_uuid(event=event)
         coordinate = Event.extract_coordinate(event=event)
 
         mid=Event.extract_mid(soup=cls.soup(url=os.path.join(url, "course")))
@@ -59,17 +56,24 @@ class Event(Scraped, Stored):
             area=event["properties"]["EventLocation"],
             latitude=coordinate.latitude,
             longitude=coordinate.longitude,
-            url=url,
-            start=Event.extract_start(soup=cls.soup(url=url)),
+            url=event["url"],
+            start=Event.extract_start(soup=cls.soup(url=event["url"])),
             timezone=coordinate.timezone,
             mid=mid,
             map=map
         )
 
         data.write(storage=storage, uuid=uuid)
-        
+
         return data
+
+    @classmethod
+    def get(cls, storage: Storage, event: Dict[str, any]) -> "Stored":
     
+        uuid = Event.extract_uuid(event=event)
+
+        return super().get(storage=storage, uuid=uuid)
+
     @staticmethod
     def extract_country(event: Dict[str, any]) -> Country:
 
@@ -111,6 +115,10 @@ class Event(Scraped, Stored):
         
         return params["mid"]
 
+    def minify(self) -> "EventMini":
+
+        return EventMini.minify(event=self)
+
 
 @dataclass
 class EventMini:
@@ -118,16 +126,29 @@ class EventMini:
     uuid: str
     latitude: float
     longitude: float
+    name: str
+    country: str
+    start: str
+    timezone: str
 
-    def __init__(self, event: Dict[str, any]):
+    @classmethod
+    def minify(cls, event: Event) -> "EventMini":
 
-        country = Event.extract_country(event=event)
-        self.uuid = Event.extract_uuid(event=event, country=country)
-
-        coordinates = Event.extract_coordinate(event=event)
-        self.latitude = coordinates.latitude
-        self.longitude = coordinates.longitude
+        return EventMini(
+            uuid=event.uuid,
+            latitude=event.latitude,
+            longitude=event.longitude,
+            name=event.name,
+            country=event.country,
+            start=event.start,
+            timezone=event.timezone
+        )
 
     def json(self) -> Dict[str, any]:
-        
+
         return self.__dict__
+
+    @property
+    def state(self) -> str:
+
+        return str(uuid5(uuid_namespace, name="|".join([self.uuid, self.name, self.start, self.timezone])))
