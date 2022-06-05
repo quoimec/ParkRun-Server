@@ -15,5 +15,7 @@ disable = [
     "multiple-statements",
     "arguments-differ",
     "arguments-renamed",
-    "too-few-public-methods"
+    "too-few-public-methods",
+    "consider-iterating-dictionary",
+    "wrong-import-order"
 ]
