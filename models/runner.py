@@ -63,7 +63,7 @@ class Runner(Scraped):
 
             names.append(pre + "-".join([w.capitalize() for w in word.split("-")]))
 
-        if len(names) == 0:
+        if len(names) == 0 or (len(names) == 1 and names[0] == ""):
             return None
 
         return " ".join(names)
