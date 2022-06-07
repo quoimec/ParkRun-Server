@@ -27,7 +27,7 @@ def get_runner_remote(request: flask.Request):
 
     except Exception as e:  # pylint: disable=W0703
         print(e)
-        return Response.error(error="An error occured", exception=e)
+        return Response.error(error="A server side error occured.", exception=e, number=request.json.get("number"))
 
     else:
         return Response.ok(data=runner)

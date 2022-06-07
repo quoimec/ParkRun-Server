@@ -11,14 +11,15 @@ from utils.json import JSONEncoder
 class Response:
 
     @classmethod
-    def error(cls, error: str, exception: Exception) -> Tuple:
+    def error(cls, error: str, exception: Exception, **kwargs) -> Tuple:
 
         return (
             json.dumps({
                 "error": error,
-                "exception": str(exception)
-            }, cls=JSONEncoder), 
-            400, 
+                "exception": str(exception),
+                **kwargs
+            }, cls=JSONEncoder),
+            400,
             {"Content-Type": "application/json"}
         )
 
@@ -28,8 +29,8 @@ class Response:
         try:
 
             return (
-                json.dumps(data, cls=JSONEncoder), 
-                200, 
+                json.dumps(data, cls=JSONEncoder),
+                200,
                 {"Content-Type": "application/json"}
             )
 
