@@ -6,14 +6,13 @@ import os
 
 from typing import Dict
 from dataclasses import dataclass
-from uuid import uuid5, NAMESPACE_URL as uuid_namespace
-
+from timezonefinder import TimezoneFinder
 from bs4 import BeautifulSoup
-from utils.storage import Storage
 
-from .base import Scraped, Stored
-from .coordinate import Coordinate
-from .map import Map
+from utils.storage import Storage
+from utils.uuid_ import generate_uuid
+
+from .base import Scraped, Stored, ExpiredVersionError
 from .country import Country, UnsupportedCountryError
 
 
@@ -21,134 +20,146 @@ from .country import Country, UnsupportedCountryError
 class Event(Scraped, Stored):
 
     uuid: str
-    country: str
     name: str
-    area: str
+    country: str
     latitude: float
     longitude: float
-    url: str
     start: str
+    start_dst: str
     timezone: str
     mid: str
-    map: Map
+
+    version: str = "1.0.1"
 
     @staticmethod
     def directory() -> str: return "events"
 
+    def generate_state(self) -> str: return generate_uuid(data=str(self.__dict__))
+
     @classmethod
-    def refresh(cls, storage: Storage, event: Dict[str, any], refresh_map: bool = False) -> "Event":
-        
-        country = Event.extract_country(event=event)
-        uuid = Event.extract_uuid(event=event)
-        coordinate = Event.extract_coordinate(event=event)
+    def refresh(cls, storage: Storage, data: Dict[str, any]) -> "Event":
 
-        mid=Event.extract_mid(soup=cls.soup(url=os.path.join(url, "course")))
+        uuid = Event.extract_uuid(data=data)
 
-        if refresh_map or not Map.exists(storage=storage, uuid=uuid):
-            map = Map.scrape(storage=storage, uuid=uuid, mid=mid)
-        else:
-            map = Map.get(storage=storage, uuid=uuid)
+        event_soup = cls.soup(url=data["url"])
+        course_soup = cls.soup(url=os.path.join(data["url"], "course"))
 
-        data = Event(
+        event = Event(
             uuid=uuid,
-            country=country.name.replace("_", " "),
-            name=event["properties"]["EventShortName"],
-            area=event["properties"]["EventLocation"],
-            latitude=coordinate.latitude,
-            longitude=coordinate.longitude,
-            url=event["url"],
-            start=Event.extract_start(soup=cls.soup(url=event["url"])),
-            timezone=coordinate.timezone,
-            mid=mid,
-            map=map
+            name=data["properties"]["EventShortName"],
+            country=Event.extract_country(data=data).display(),
+            latitude=data["geometry"]["coordinates"][1],
+            longitude=data["geometry"]["coordinates"][0],
+            start=Event.extract_start(soup=event_soup, uuid=uuid, dst=False),
+            start_dst=Event.extract_start(soup=event_soup, uuid=uuid, dst=True),
+            timezone=TimezoneFinder().timezone_at(lng=data["geometry"]["coordinates"][0], lat=data["geometry"]["coordinates"][1]),
+            mid=Event.extract_mid(soup=course_soup)
         )
 
-        data.write(storage=storage, uuid=uuid)
+        event.write(storage=storage, uuid=uuid)
 
-        return data
+        print(f"Refreshed for event: {event.name} | {event.country}")
+
+        return event
 
     @classmethod
-    def get(cls, storage: Storage, event: Dict[str, any]) -> "Stored":
-    
-        uuid = Event.extract_uuid(event=event)
+    def get(cls, storage: Storage, data: Dict[str, any]) -> "Event":
 
-        return super().get(storage=storage, uuid=uuid)
-
-    @staticmethod
-    def extract_country(event: Dict[str, any]) -> Country:
+        uuid = Event.extract_uuid(data=data)
 
         try:
-            return Country(event["properties"]["countrycode"])
-        except ValueError:
-            raise UnsupportedCountryError(event["properties"]["countrycode"])
+            raw = super().get(storage=storage, uuid=uuid)
 
-    @staticmethod    
-    def extract_uuid(event: Dict[str, any]) -> str:
+            if raw.get("version") != Event.version: raise ExpiredVersionError()
 
-        country = Event.extract_country(event=event)
+            for key in ["state", "refreshed"]:
+                if key in raw: del raw[key]
 
-        return str(uuid5(uuid_namespace, name=f"{country.value}|{event['id']}"))
+        except FileNotFoundError:
+            event = Event.refresh(storage=storage, data=data)
+
+        except ExpiredVersionError:
+            event = getattr(cls, f"migrate_v{Event.version.replace('.', '_')}")(raw=raw)
+            event.write(storage=storage, uuid=uuid)
+
+        else:
+            event = Event(**raw)
+
+        return event
 
     @staticmethod
-    def extract_coordinate(event: Dict[str, any]) -> Coordinate:
+    def extract_country(data: Dict[str, any]) -> Country:
 
-        return Coordinate(
-            latitude=event["geometry"]["coordinates"][1],
-            longitude=event["geometry"]["coordinates"][0]
-        )
+        try:
+            return Country(data["properties"]["countrycode"])
+        except ValueError as e:
+            raise UnsupportedCountryError(data["properties"]["countrycode"]) from e
 
-    @staticmethod    
-    def extract_start(soup: BeautifulSoup) -> str:
-        
+    @staticmethod
+    def extract_uuid(data: Dict[str, any]) -> str:
+
+        country = Event.extract_country(data=data)
+
+        return generate_uuid(data=f"{country.value}|{data['id']}")
+
+    @staticmethod
+    def extract_start(soup: BeautifulSoup, uuid: str, dst: bool) -> str:
+
         content = soup.select_one("div#main div.homeleft")
 
         index = [h.text.strip() for h in content.select("h4")].index("When is it?")
         text = [p.text.strip() for p in content.select("p.paddetandb")][index]
-        time = re.search(r"(\d{1,2}):(\d{2})", text)
-        
-        return f"{int(time.group(1)):02d}:{time.group(2)}"
-    
+
+        try:
+
+            if re.search(r"daylight|saving|summer|winter", text) is None:
+
+                time = re.search(r"(\d{1,2}):(\d{2})", text)
+
+                if time is not None:
+                    return f"{int(time.group(1)):02d}:{time.group(2)}"
+
+                time = re.search(r"(\d{1,2})am", text)
+
+                if time is not None:
+                    return f"{int(time.group(1)):02d}:00"
+
+                raise Exception(f"Unable to find start time from text: {text}")
+
+            elif dst:
+                time = re.search(r"(\d{1,2})am during daylight saving", text)
+                return f"{int(time.group(1)):02d}:00"
+
+            else:
+                time = re.search(r"(\d{1,2})am during standard time", text)
+                return f"{int(time.group(1)):02d}:00"
+
+        except Exception as e:  # pylint: disable=W0703
+
+            if uuid == "f4462738-1eb6-5094-9d2c-348beb1177c8":  # The Venue
+                if dst:
+                    return "07:00"
+                else:
+                    return "08:00"
+
+            else:
+                raise e
+
     @staticmethod
     def extract_mid(soup: BeautifulSoup) -> str:
-        
+
         params = dict([tuple(p.split("=")) for p in soup.select_one("iframe").attrs["src"].split("?")[1].split("&")])
-        
+
         return params["mid"]
 
-    def minify(self) -> "EventMini":
+    @staticmethod
+    def migrate_v1_0_0(raw: Dict[str, any]) -> "Event":
 
-        return EventMini.minify(event=self)
+        return Event(**{k: v for (k, v) in raw.items() if k in ["uuid", "name", "country", "latitude", "longitude", "start", "timezone", "mid"]})
 
+    @staticmethod
+    def migrate_v1_0_1(raw: Dict[str, any]) -> "Event":
 
-@dataclass
-class EventMini:
+        raw["start_dst"] = raw["start"]
 
-    uuid: str
-    latitude: float
-    longitude: float
-    name: str
-    country: str
-    start: str
-    timezone: str
-
-    @classmethod
-    def minify(cls, event: Event) -> "EventMini":
-
-        return EventMini(
-            uuid=event.uuid,
-            latitude=event.latitude,
-            longitude=event.longitude,
-            name=event.name,
-            country=event.country,
-            start=event.start,
-            timezone=event.timezone
-        )
-
-    def json(self) -> Dict[str, any]:
-
-        return self.__dict__
-
-    @property
-    def state(self) -> str:
-
-        return str(uuid5(uuid_namespace, name="|".join([self.uuid, self.name, self.start, self.timezone])))
+        return Event(**{k: v for (k, v) in raw.items() if k in ["uuid", "name", "country", "latitude", "longitude", "start", "start_dst", "timezone", "mid"]})

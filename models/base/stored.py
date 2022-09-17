@@ -1,17 +1,24 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import abc
+import copy
 import json
+import datetime
 
-from typing import List, Dict, Tuple
+from typing import Dict, Tuple
 
-from utils.json import JSONEncoder
+from utils.json_ import JSONEncoder
 from utils.storage import Storage, Codable
 
 
+class ExpiredVersionError(Exception): pass
+
+
 class Stored():
-    
+
+    @staticmethod
     @abc.abstractmethod
     def directory() -> str: raise NotImplementedError
 
@@ -28,13 +35,16 @@ class Stored():
         return storage.exists(file=file, directory=directory)
 
     @classmethod
-    def get(cls, storage: Storage, uuid: str) -> "Stored":
-    
+    def get(cls, storage: Storage, uuid: str) -> Dict[str, any]:
+
         file, directory = cls.path(uuid=uuid)
 
-        return cls(**json.loads(
-            storage.get(file=file, directory=directory)
-        ))
+        data = storage.get(file=file, directory=directory)
+
+        if data is None or data == "":
+            raise FileNotFoundError()
+
+        return json.loads(data)
 
     @classmethod
     def delete(cls, storage: Storage, uuid: str):
@@ -45,14 +55,25 @@ class Stored():
 
     @abc.abstractmethod
     def refresh(self, storage: Storage, *args, **kwargs) -> "Stored":  raise NotImplementedError
-    
+
     def write(self, storage: Storage, uuid: str):
 
         file, directory = self.path(uuid=uuid)
 
-        with storage.write(file=file, directory=directory, codable=Codable.json) as blob:
-            blob.write(json.dumps(self, cls=JSONEncoder))
-        
+        storage.write(file=file, data=json.dumps(self, cls=JSONEncoder), directory=directory, codable=Codable.json)
+
     def json(self) -> Dict[str, any]:
-        
-        return self.__dict__
+
+        data = copy.copy(self.__dict__)
+
+        private_values = [key for key in data.keys() if re.search(r"_(\w)+_", key) is not None]
+
+        for key in private_values:
+            del data[key]
+
+        if hasattr(self, "generate_state"):
+            data["state"] = getattr(self, "generate_state")()
+
+        data["refreshed"] = datetime.datetime.now()
+
+        return data

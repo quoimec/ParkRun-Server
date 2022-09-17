@@ -17,5 +17,10 @@ disable = [
     "arguments-renamed",
     "too-few-public-methods",
     "consider-iterating-dictionary",
-    "wrong-import-order"
+    "wrong-import-order",
+    "no-else-return",
+    "unnecessary-lambda",
+    "consider-using-dict-items",
+    "too-many-locals",
+    "too-many-arguments"
 ]

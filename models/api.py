@@ -5,7 +5,7 @@ import json
 
 from typing import Tuple
 
-from utils.json import JSONEncoder
+from utils.json_ import JSONEncoder
 
 
 class Response:

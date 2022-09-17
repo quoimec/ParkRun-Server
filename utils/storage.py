@@ -6,31 +6,31 @@ import enum
 import json
 
 from dataclasses import dataclass
-from typing import Dict, Callable
+from typing import Callable
 from google.oauth2 import service_account
 from google.cloud import storage, exceptions
 
 
 class Auth:
-    
+
     @classmethod
     def credentials(cls, key: str = "GCLOUD_MASTER_SA_KEY"):
-        
+
         if key in os.environ:
             data = json.loads(os.environ[key])
         else:
-            with open(f"{key.lower()}.json") as file:
+            with open(f"{key.lower()}.json", "r", encoding="utf-8") as file:
                 data = json.load(file)
-                
+
         return service_account.Credentials.from_service_account_info(data)
 
 @dataclass
 class Format:
-    
+
     encode: str
     decode: Callable
-        
-        
+
+
 class Codable(enum.Enum):
 
     text = Format(
@@ -50,7 +50,7 @@ class Storage(Auth):
         self.client = storage.Client(
             credentials=self.credentials()
         )
-        
+
         self.bucket = self.client.get_bucket(bucket)
 
     def get(self, file: str, directory: str = "", codable: Codable = Codable.text) -> any:
@@ -62,19 +62,20 @@ class Storage(Auth):
             with self.bucket.blob(path).open(mode="r") as blob:
                 return codable.value.decode(blob=blob)
 
-        except exceptions.NotFound:
-            raise FileNotFoundError(path)
+        except exceptions.NotFound as e:
+            raise FileNotFoundError(path) from e
 
-    def write(self, file: str, directory: str = "", codable: Codable = Codable.text):
-        
+    def write(self, file: str, data: str, directory: str = "", codable: Codable = Codable.text):
+
         path = os.path.join(directory, file)
-        
-        return self.bucket.blob(path).open(mode="w", content_type=codable.value.encode)
+
+        with self.bucket.blob(path).open(mode="w", content_type=codable.value.encode) as blob:
+            blob.write(data)
 
     def exists(self, file: str, directory: str = "") -> bool:
-        
+
         path = os.path.join(directory, file)
-        
+
         return self.bucket.blob(path).exists()
 
     def delete(self, file: str, directory: str = ""):

@@ -2,4 +2,4 @@
 # -*- coding: utf-8 -*-
 
 from .scraped import Scraped
-from .stored import Stored
+from .stored import Stored, ExpiredVersionError
