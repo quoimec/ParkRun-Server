@@ -30,3 +30,5 @@ jobs:
             
           - name: Refresh Events
             run: python3 refresh.py
+            env:
+                GCLOUD_MASTER_SA_KEY: '${{ secrets.GCLOUD_MASTER_SA_KEY }}'
