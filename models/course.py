@@ -72,7 +72,7 @@ class Course(Scraped, Stored):
             "1e2bcdc7-6107-515c-b8f4-31cc2e22998c": ["2.5km"],  # Cronulla
             "09fa28f9-7de3-5959-8752-afaddd789cb5": ["line 1"],  # North Parkes Oval
             "c1e18aaa-2b94-5553-8868-332011a7e5e4": ["line 3"],  # North Bay
-            # "83036295-3ec7-54ee-a70a-f51f4022f404": ["oldbridge"],  Oldbridge
+            "83036295-3ec7-54ee-a70a-f51f4022f404": ["oldbridge"],  # Oldbridge
             "29a4bd35-0cc3-5aac-8990-887a28938b06": ["run.gpx"],  # Norm-Hudlin Trails
             "666d34c0-6553-5284-bc8d-671ee3f9336c": ["line 3"],  # Somerset West
             "f0730b89-eff2-5573-b0e0-8dee0a2dd5d5": ["line 1"],  # Congleton
