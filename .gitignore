@@ -2,5 +2,9 @@
 *.ipynb_checkpoints
 *.DS_Store
 *__pycache__
+*.ipynb_checkpoints
+*.ipynb
 
+# Secrets
+.env
 gcloud_master_sa_key.json
