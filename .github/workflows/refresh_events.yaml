@@ -19,8 +19,11 @@ jobs:
             with:
                 python-version: "3.10"
         
+          - name: Debug
+            run: ls
+        
           - name: Install Requirements
-            run: pip install --upgrade -f requirements.txt
+            run: pip install --upgrade -r requirements.txt
             
           - name: Refresh Events
             run: python3 refresh.py
