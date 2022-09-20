@@ -32,3 +32,4 @@ jobs:
             run: python3 refresh.py
             env:
                 GCLOUD_MASTER_SA_KEY: '${{ secrets.GCLOUD_MASTER_SA_KEY }}'
+                GCLOUD_MAPS_KEY: '${{ secrets.GCLOUD_MAPS_KEY }}'
