@@ -25,6 +25,12 @@ jobs:
             id: date
             run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
+          - name: Git Email
+            run: git config --global user.email "18281573+quoimec@users.noreply.github.com"
+        
+          - name: Git User
+            run: git config --global user.name "quoimec"
+            
           - name: Create Commit
             run: git commit -a -m 'Scheduled Commit ${{ steps.date.outputs.date }}'
         
