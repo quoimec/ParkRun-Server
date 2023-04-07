@@ -31,6 +31,9 @@ jobs:
           - name: Git User
             run: git config --global user.name "quoimec"
             
+          - name: Add Files
+            run: git add -A
+            
           - name: Create Commit
             run: git commit -a -m 'Scheduled Commit ${{ steps.date.outputs.date }}'
         
