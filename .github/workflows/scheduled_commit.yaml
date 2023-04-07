@@ -15,7 +15,7 @@ jobs:
             
           - name: Checkout
             uses: actions/checkout@v3
-            ref: scheduled-commit
+            ref: 'scheduled-commit'
         
           - name: Create Delta
             run: echo $RANDOM > scheduled.txt
@@ -25,7 +25,7 @@ jobs:
             run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
           - name: Create Commit
-            run: git commit -a -m "Scheduled Commit ${{ steps.date.outputs.date }}"
+            run: git commit -a -m 'Scheduled Commit ${{ steps.date.outputs.date }}'
         
           - name: Push Commit
             run: git push origin scheduled-commit
