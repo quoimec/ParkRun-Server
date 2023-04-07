@@ -1,0 +1,31 @@
+name: Scheduled Commit
+
+on:
+    schedule:
+      - cron: "0 0 * * 2"
+      
+    push:
+        branches: [master]
+
+jobs:
+    refresh:
+        name: Create Commit
+        runs-on: ubuntu-latest
+        steps:
+            
+          - name: Checkout
+            uses: actions/checkout@v3
+            ref: scheduled-commit
+        
+          - name: Create Delta
+            run: echo $RANDOM > scheduled.txt
+        
+          - name: Current date
+            id: date
+            run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
+          - name: Create Commit
+            run: git commit -a -m "Scheduled Commit ${{ steps.date.outputs.date }}"
+        
+          - name: Push Commit
+            run: git push origin scheduled-commit
