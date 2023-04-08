@@ -4,8 +4,8 @@ on:
     schedule:
       - cron: "0 0 * * 2"
     
-    # push:
-    #     branches: [master]
+    push:
+        branches: [master]
     
     workflow_dispatch:
 
@@ -14,6 +14,9 @@ jobs:
         name: Refresh Events
         runs-on: ubuntu-latest
         steps:
+        
+          - name: Cronitor Start
+            run: curl https://cronitor.link/p/${{ secrets.CRONITOR_KEY }}/s85I7g?state=run
             
           - uses: actions/checkout@v3
         
@@ -33,3 +36,7 @@ jobs:
             env:
                 GCLOUD_MASTER_SA_KEY: '${{ secrets.GCLOUD_MASTER_SA_KEY }}'
                 GCLOUD_MAPS_KEY: '${{ secrets.GCLOUD_MAPS_KEY }}'
+                
+          - name: Cronitor Complete
+            if: always()
+            run: curl https://cronitor.link/p/${{ secrets.CRONITOR_KEY }}/s85I7g?state=${{ success() && 'complete' || 'fail' }}
