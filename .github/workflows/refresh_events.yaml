@@ -37,6 +37,10 @@ jobs:
                 GCLOUD_MASTER_SA_KEY: '${{ secrets.GCLOUD_MASTER_SA_KEY }}'
                 GCLOUD_MAPS_KEY: '${{ secrets.GCLOUD_MAPS_KEY }}'
                 
-          - name: Cronitor Complete
-            if: always()
-            run: curl https://cronitor.link/p/${{ secrets.CRONITOR_KEY }}/s85I7g?state=${{ success() && 'complete' || 'fail' }}
+          - name: Cronitor Success
+            if: success()
+            run: curl https://cronitor.link/p/${{ secrets.CRONITOR_KEY }}/s85I7g?state=complete
+            
+          - name: Cronitor Failure
+            if: failure()
+            run: curl https://cronitor.link/p/${{ secrets.CRONITOR_KEY }}/s85I7g?state=fail
