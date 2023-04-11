@@ -2,7 +2,7 @@ name: Refresh Events
 
 on:
     schedule:
-      - cron: "0 0 * * 2"
+      - cron: "17 2 * * 2"
     
     push:
         branches: [master]
