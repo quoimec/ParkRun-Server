@@ -8,6 +8,15 @@ on:
         branches: [master]
     
     workflow_dispatch:
+        inputs:
+            branch: 
+                description: "🌿 Checkout Branch"
+                required: true
+                default: "master"
+                type: string
+                
+env:
+    branch: ${{ github.event.inputs.branch || "master" }}    
 
 jobs:
     refresh:
@@ -18,7 +27,10 @@ jobs:
           - name: Cronitor Start
             run: curl https://cronitor.link/p/${{ secrets.CRONITOR_KEY }}/s85I7g?state=run
             
-          - uses: actions/checkout@v3
+          - name: Checkout
+            uses: actions/checkout@v3
+            with:
+                ref: ${{ env.branch }}
         
           - name: Install Python
             uses: actions/setup-python@v4
