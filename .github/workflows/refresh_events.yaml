@@ -16,7 +16,7 @@ on:
                 type: string
                 
 env:
-    branch: ${{ github.event.inputs.branch || "master" }}    
+    branch: ${{ github.event.inputs.branch || 'master' }}    
 
 jobs:
     refresh:
