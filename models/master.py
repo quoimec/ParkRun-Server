@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import traceback
 
 from dataclasses import dataclass
 from typing import List, Dict, Iterator
@@ -97,8 +98,7 @@ class Master(Scraped, Stored):
 
         except Exception as e:
 
-            print(data)
-            raise Exception(f"uuid: {Event.extract_uuid(data)}, {data['url']}") from e
+            return Exception(f"uuid: {Event.extract_uuid(data)}, {data['url']}, {e}\n\n{traceback.format_exc()}")
 
         else:
 
