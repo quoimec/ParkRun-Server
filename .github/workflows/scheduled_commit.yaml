@@ -1,6 +1,9 @@
 name: Scheduled Commit
 
 on:
+    push:
+        branches-ignore:
+          - "master"
     schedule:
       - cron: "0 0 * * 2"
 
@@ -11,17 +14,17 @@ jobs:
         steps:
             
           - name: Checkout
-            uses: actions/checkout@v3
+            uses: actions/checkout@v4
             with:
-                ref: 'scheduled-commit'
+                ref: "scheduled-commit"
         
           - name: Create Delta
             run: echo $RANDOM > scheduled.txt
         
           - name: Current date
             id: date
-            run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        
+            run: echo "name=date::$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+
           - name: Git Email
             run: git config --global user.email "18281573+quoimec@users.noreply.github.com"
         
