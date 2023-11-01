@@ -65,8 +65,6 @@ class Course(Scraped, Stored):
         point_placemarks = Course.extract_placemarks(soup=soup, point=True)
         route_placemarks = Course.extract_placemarks(soup=soup, point=False)
 
-        # "": [""],  # 
-
         special = {
             "9a372327-e977-5a01-88ec-cc646120261a": ["run/walk along esplanade concrete foot path"],  # Cairns
             "1e2bcdc7-6107-515c-b8f4-31cc2e22998c": ["2.5km"],  # Cronulla
@@ -89,6 +87,7 @@ class Course(Scraped, Stored):
             "9641f1a9-7ce7-57ab-a549-715ded8cbae1": ["lap 1"],  # Preston Park
             "3967a0e6-144e-58d0-94b8-a69d789f4c70": ["laps 2-4"],  # Dewsbury
             "cf6d3f58-34a5-5db6-b50f-448877c94b3d": ["line 5"],  # Armley
+            "ff8260d2-1348-5009-9dd7-98d832626494": ["track 1"],  # Phoenix Park
         }
 
         route = route_placemarks[Course.extract_match(

@@ -1,7 +1,6 @@
 [tool.pylint.master]
 output-format = "colorized"
 
-
 [tool.pylint.messages_control]
 disable = [
     "line-too-long",
