@@ -16,7 +16,7 @@ jobs:
           - name: Checkout
             uses: actions/checkout@v4
             with:
-                ref: "scheduled-commit"
+                ref: "scheduled-commi"
         
           - name: Create Delta
             run: echo $RANDOM > scheduled.txt
